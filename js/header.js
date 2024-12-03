@@ -1,5 +1,13 @@
 // Get the current location's path and determine the base directory
-const basePath = window.location.origin + '/';
+let basePath = '';
+
+// Check if running on GitHub Pages (i.e., if the URL contains '/jm-auto/')
+if (window.location.hostname === 'shawndixon58.github.io') {
+  basePath = window.location.origin + '/jm-auto'; // Set base path for GitHub Pages
+} else {
+  basePath = window.location.origin; // Local environment (no subfolder)
+}
+//const basePath = window.location.origin + '/';
 
 // Create header container
 const header = document.createElement('div');
