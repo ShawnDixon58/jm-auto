@@ -4,7 +4,7 @@ let basePath = '';
 // Check if running on GitHub Pages (i.e., if the URL contains '/jm-auto/')
 console.log("hostname: ", window.location.hostname)
 if (window.location.hostname === 'shawndixon58.github.io') {
-  basePath = window.location.origin + '/jm-auto'; // Set base path for GitHub Pages
+  basePath = window.location.origin + '/jm-auto/'; // Set base path for GitHub Pages
   console.log("GITHUB")
 } else {
   basePath = window.location.origin + '/'; // Local environment (no subfolder)
