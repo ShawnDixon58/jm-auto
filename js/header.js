@@ -7,7 +7,7 @@ if (window.location.hostname === 'shawndixon58.github.io') {
   basePath = window.location.origin + '/jm-auto'; // Set base path for GitHub Pages
   console.log("GITHUB")
 } else {
-  basePath = window.location.origin; // Local environment (no subfolder)
+  basePath = window.location.origin + '/'; // Local environment (no subfolder)
 }
 //const basePath = window.location.origin + '/';
 
