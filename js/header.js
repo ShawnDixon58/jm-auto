@@ -22,7 +22,7 @@ logoLink.href = basePath + 'index.html'; // Path to your index.html
 // Create logo image element
 const logo = document.createElement('img');
 logo.className = 'logo';
-logo.src = '/assets/jmauto.png';
+logo.src = basePath + 'assets/jmauto.png';
 logo.alt = 'J&M Auto Sales Logo';
 
 // Append logo to logo link
