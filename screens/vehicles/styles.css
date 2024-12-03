@@ -1,0 +1,550 @@
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url(../../assets/truck.jpeg);
+  background-color: rgba(255, 255, 255, 0.8);
+  background-blend-mode: lighten;
+}
+
+.header {
+  background-color: white;
+  top: 0;
+  width: 100%;
+  position: fixed;
+  z-index: 999;
+  box-shadow: 0 -6px 10px 5px #1e9bff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  height: 100px;
+  display: inline;
+}
+
+.contact-icons {
+  margin-right: 30px;
+}
+
+.contact-icons a {
+  margin-left: 30px;
+  font-size: 40px;
+  text-decoration: none;
+}
+
+.contact-icons img {
+  width: 30px;
+  height: auto;
+  box-shadow: 1px 1px #1e9bff;
+}
+
+.vehicles-title {
+  position: absolute;
+  padding-top: 120px;
+  padding-left: 15px;
+  display: flex;
+  justify-content: left;
+  align-items: flex-start;
+  z-index: 998;
+  flex-wrap: wrap;
+  color: #1e9bff;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  text-shadow: #1e9bff 1px 0 10px;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding-top: 170px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.vehicle-link {
+  text-decoration: none;
+  color: #000000;
+}
+
+.card {
+  border: 1px solid #1e9bff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px #1e9bff;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px 8px 0 0;
+  z-index: 0;
+}
+
+.card:hover {
+  -webkit-filter: brightness(50%);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
+}
+
+.card-details {
+  padding: 10px;
+}
+
+.card-details h2 {
+  margin-top: 0;
+  font-family: "Montserrat", sans-serif;
+}
+
+.card-details p {
+  margin: 5px 0;
+  font-family: "Montserrat", sans-serif;
+}
+
+.card-details button {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.card-details button:hover {
+  background-color: #0056b3;
+}
+
+footer {
+  background-color: white;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  color: #000;
+  margin-bottom: 0;
+}
+
+.admin-link {
+  padding-right: 20px;
+  font-size: 16px;
+}
+
+.map {
+  padding-left: 20px;
+}
+
+.map-icon {
+  display: none;
+}
+
+/* Media Queries */
+@media (max-width: 380px) {
+  body {
+    background-color: rgba(0, 0, 0, 0.1);
+    background-image: none;
+  }
+  
+  .logo {
+    height: 40px;
+  }
+
+  .contact-icons {
+    margin: 10px;
+  }
+
+  .contact-icons a {
+    margin-left: 20px;
+    font-size: 20px;
+  }
+
+  .contact-icons img {
+    width: 20px;
+    height: auto;
+  }
+
+  .vehicles-title {
+    padding-top: 75px;
+    justify-content: center;
+    align-items: center;
+    padding-left: 0;
+    width: 100%;
+    flex-wrap: nowrap;
+    font-size: 26px;
+  }
+
+  .card-container {
+    gap: 20px;
+    padding-top: 150px;
+    padding-left: 35px;
+    padding-right: 45px;
+    padding-bottom: 45px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card-details button {
+    width: 75%;
+  }
+
+  footer {
+    padding: 5px;
+    box-shadow: 0px 0px 10px 0px #1e9bff;
+  }
+
+  .footer-content {
+    padding: 1px;
+    font-size: xx-small;
+  }
+
+  .admin-link {
+    font-size: small;
+  }
+
+  .map {
+    display: none;
+  }
+
+  .map-icon {
+    display: flex;
+    font-size: 3rem;
+    padding: 5px 10px;
+  }
+
+  .map-icon a {
+    text-decoration: none;
+  }
+}
+
+/* Extra small devices (phones, less than 576px) */
+@media (min-width: 380px) and (max-width: 575.98px) {
+  body {
+    background-color: rgba(0, 0, 0, 0.1);
+    background-image: none;
+  }
+  
+  .logo {
+    height: 40px;
+  }
+
+  .contact-icons {
+    margin: 10px;
+  }
+
+  .contact-icons a {
+    margin-left: 20px;
+    font-size: 20px;
+  }
+
+  .contact-icons img {
+    width: 20px;
+    height: auto;
+  }
+
+  .vehicles-title {
+    padding-top: 75px;
+    justify-content: center;
+    align-items: center;
+    padding-left: 0;
+    width: 100%;
+    flex-wrap: nowrap;
+    font-size: 26px;
+  }
+
+  .card-container {
+    gap: 20px;
+    padding-top: 150px;
+    padding-left: 45px;
+    padding-right: 45px;
+    padding-bottom: 45px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card-details button {
+    width: 75%;
+  }
+
+  footer {
+    padding: 5px;
+    box-shadow: 0px 0px 10px 0px #1e9bff;
+  }
+
+  .footer-content {
+    padding: 1px;
+    font-size: xx-small;
+  }
+
+  .admin-link {
+    font-size: small;
+  }
+
+  .map {
+    display: none;
+  }
+
+  .map-icon {
+    display: flex;
+    font-size: 3rem;
+    padding: 5px 10px;
+  }
+
+  .map-icon a {
+    text-decoration: none;
+  }
+}
+
+/* Small devices (small tablets and large phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  body {
+    background-color: rgba(0, 0, 0, 0.1);
+    background-image: none;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .contact-icons {
+    margin: 10px;
+  }
+
+  .contact-icons a {
+    margin-left: 20px;
+    font-size: 20px;
+  }
+
+  .contact-icons img {
+    width: 20px;
+    height: auto;
+  }
+
+  .vehicles-title {
+    padding-top: 75px;
+    justify-content: center;
+    align-items: center;
+    padding-left: 0;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .card-container {
+    gap: 20px;
+    padding-top: 150px;
+    padding-left: 45px;
+    padding-right: 45px;
+    padding-bottom: 45px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card-details button {
+    width: 75%;
+  }
+
+  footer {
+    padding: 5px;
+    box-shadow: 0px 0px 10px 0px #1e9bff;
+  }
+
+  .footer-content {
+    padding: 1px;
+    font-size: xx-small;
+  }
+
+  .admin-link {
+    font-size: small;
+  }
+
+  .map {
+    display: none;
+  }
+
+  .map-icon {
+    display: flex;
+    font-size: 3rem;
+    padding: 5px 10px;
+  }
+
+  .map-icon a {
+    text-decoration: none;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .logo {
+    height: 60px;
+  }
+
+  .contact-icons a {
+    font-size: 25px;
+  }
+
+  .contact-icons img {
+    width: 25px;
+  }
+
+  .vehicles-title {
+    padding-top: 100px;
+    justify-content: flex-start;
+    padding-left: 15px;
+    font-size: 1.5rem;
+  }
+
+  .card-container {
+    padding-top: 160px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  footer {
+    padding: 10px;
+  }
+
+  .footer-content {
+    font-size: small;
+  }
+
+  .admin-link {
+    font-size: medium;
+  }
+
+  .map {
+    display: block;
+  }
+
+  .map-icon {
+    display: none;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .logo {
+    height: 80px;
+  }
+
+  .contact-icons a {
+    font-size: 30px;
+  }
+
+  .contact-icons img {
+    width: 30px;
+  }
+
+  .vehicles-title {
+    padding-top: 120px;
+    justify-content: flex-start;
+    padding-left: 15px;
+    font-size: 2rem;
+  }
+
+  .card-container {
+    padding-top: 170px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  footer {
+    padding: 10px;
+  }
+
+  .footer-content {
+    font-size: medium;
+  }
+
+  .admin-link {
+    font-size: large;
+  }
+
+  .map {
+    display: block;
+  }
+
+  .map-icon {
+    display: none;
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .logo {
+    height: 100px;
+  }
+
+  .contact-icons a {
+    font-size: 40px;
+  }
+
+  .contact-icons img {
+    width: 30px;
+  }
+
+  .vehicles-title {
+    padding-top: 120px;
+    justify-content: flex-start;
+    padding-left: 15px;
+    font-size: 2.5rem;
+  }
+
+  .card-container {
+    padding-top: 170px;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  footer {
+    padding: 10px;
+  }
+
+  .footer-content {
+    font-size: large;
+  }
+
+  .admin-link {
+    font-size: x-large;
+  }
+
+  .map {
+    display: block;
+  }
+
+  .map-icon {
+    display: none;
+  }
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&M Auto Sales - Upload a Part Out</title>
+    <link rel="stylesheet" href="./styles.css"> <!-- Link to your CSS file -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Clicker+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="/js/script.js"></script> <!-- Link to your JavaScript file for tab functionality -->
+</head>
+<body>
+    <div class="container">
+        <h1>Add a Part Out</h1>
+        <!-- Your upload form or any other UI elements -->
+    <form id="uploadForm">
+        <label for="partMake">Make:</label>
+            <input type="text" id="partMake" name="partMake" placeholder="Enter make">
+            <br>
+            <label for="partModel">Model:</label>
+            <input type="text" id="partModel" name="partModel" placeholder="Enter model">
+            <br>
+            <label for="partYear">Year:</label>
+            <input type="text" id="partYear" name="partYear" placeholder="Enter year">
+            <br>
+            <label for="partPrice">Price:</label>
+            <input type="text" id="partPrice" name="partPrice" placeholder="Enter price">
+            <br>
+            <!-- <label for="partFeatures">Parts:</label>
+            <input type="text" id="partFeatures" name="partFeatures" placeholder="Enter Parts (comma separated)">
+            <br> -->
+            <div id="partsContainer">
+                <label>Parts:</label>
+                <button type="button" onclick="addPart()">Add Part</button>
+                <br>
+            </div>
+            <br>
+            <label for="partMainImage">Main Image URL:</label>
+            <input type="file" id="partMainImage" name="partMainImage">
+            <br>
+            <label for="partAllImages">Additional Images URLs:</label>
+            <input type="file" id="partAllImages" name="partAllImages" multiple>
+            <br>
+            <input type="submit" value="Upload Part Out">
+    </form>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"></script>
+    <script>
+        function addPart() {
+            const partsContainer = document.getElementById('partsContainer');
+            const partItem = document.createElement('div');
+            partItem.classList.add('part-item');
+            partItem.innerHTML = `
+                <input type="text" class="part-name" placeholder="Part Name">
+                <input type="text" class="part-price" placeholder="Part Price">
+                <label>Sold<input type="checkbox" class="part-sold"></label>
+                <label>Ea<input type="checkbox" class="part-each"></label>
+                <button type="button" onclick="removePart(this)">Remove</button>
+                <br>
+            `;
+            partsContainer.appendChild(partItem);
+        }
+
+        function removePart(button) {
+            const partItem = button.parentElement;
+            partItem.remove();
+        }
+    </script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js'
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent form submission
+        
+        const make = document.getElementById('partMake').value;
+        const model = document.getElementById('partModel').value;
+        const year = document.getElementById('partYear').value;
+        const price = parseFloat(document.getElementById('partPrice').value);
+        const mainImageFile = document.getElementById('partMainImage').files[0];
+        const allImagesFiles = document.getElementById('partAllImages').files;
+        
+        // Upload main image to Firebase Storage
+        const mainImageRef = await uploadImage(mainImageFile);
+        const mainImageURL = await getDownloadURL(mainImageRef);
+        
+        // Upload additional images to Firebase Storage
+        const allImagesURLs = await Promise.all(Array.from(allImagesFiles).map(async (file) => {
+            const imageRef = await uploadImage(file);
+            return getDownloadURL(imageRef);
+        }));
+
+        const parts = Array.from(document.querySelectorAll('.part-item')).map(partItem => {
+                return {
+                    part: partItem.querySelector('.part-name').value,
+                    price: parseFloat(partItem.querySelector('.part-price').value),
+                    sold: partItem.querySelector('.part-sold').checked,
+                    each: partItem.querySelector('.part-each').checked
+                };
+            });
+
+        // Store data in Firebase Realtime Database
+        const docRef = await addDoc(collection(db, 'parts'), {
+            make,
+            model,
+            year,
+            price,
+            mainImage: mainImageURL,
+            allImages: allImagesURLs,
+            parts
+        });
+
+        console.log('Document written with ID: ', docRef.id);
+        alert('Part Out uploaded successfully!');
+    });
+
+    async function uploadImage(file) {
+        const storageRef = ref(storage, 'partouts/' + file.name);
+        const snapshot = await uploadBytes(storageRef, file);
+        return snapshot.ref;
+    }
+
+    async function getDownloadURL(ref) {
+        const bucketName = storage._bucket.name;
+        return `https://firebasestorage.googleapis.com/v0/b/jmauto-13009.appspot.com/o/${encodeURIComponent(ref.fullPath)}?alt=media`;
+    }
+    </script>
+    </div>
+</body>
+</html>
+
+

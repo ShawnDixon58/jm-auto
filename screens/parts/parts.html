@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&M Auto Sales - Vehicles</title>
+    <link rel="stylesheet" href="/screens/parts/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Clicker+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <script src="/js/header.js"></script>
+    <h1 class="part-title">AVAILABLE PART OUTS</h1>
+
+    <div id="part-container" class="card-container">
+        <!-- Cards will be dynamically generated here -->
+    </div>
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 J&M Auto Sales. All rights reserved.</p>
+            <a href="../../screens/admin/login.html" class="admin-link">Admin</a>
+        </div>
+        
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
+    <script type="module">
+        
+
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js'
+    
+        // If you enabled Analytics in your project, add the Firebase SDK for Google Analytics
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js'
+    
+        // Add Firebase products that you want to use
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js'
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js'
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        // Reference to your Firebase database
+        const db = getFirestore();
+        // Reference to the "cars" node in your database
+        const partsCollection = collection(db, 'parts');
+
+        // Retrieve data from the database
+        getDocs(partsCollection).then((querySnapshot) => {
+            // Reference to the vehicle container
+        const vehiclesContainer = document.getElementById('part-container');
+
+        // Iterate over each document in the query snapshot
+        querySnapshot.forEach((doc) => {
+            // Get data from the document
+            const data = doc.data();
+
+            // Create elements for each vehicle
+            const link = document.createElement('a');
+            link.href = `../part/part.html?id=${doc.id}`;
+            link.classList.add('part-link');
+
+            const card = document.createElement('div');
+            card.classList.add('card');
+
+            const img = document.createElement('img');
+            img.src = data.mainImage;
+            img.alt = data.name;
+            card.appendChild(img);
+
+            const details = document.createElement('div');
+            details.classList.add('card-details');
+
+            const year = document.createElement('h2');
+            year.textContent = data.year;
+            details.appendChild(year);
+
+            const makeModel = document.createElement('h2');
+            makeModel.textContent = data.make + ' ' + data.model;
+            details.appendChild(makeModel);
+
+            const price = document.createElement('p');
+            price.textContent = 'Price: $' + data.price.toFixed(2);
+            details.appendChild(price);
+
+            card.appendChild(details);
+            link.appendChild(card);
+
+            vehiclesContainer.appendChild(link);
+        });
+        })
+        .catch((error) => {
+        console.error('Error getting documents: ', error);
+        });
+            
+    </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css"> <!-- Link to your CSS file -->
+    <title>J&M Auto Sales - Delete Vehicle</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Delete Vehicle</h1>
+        <form id="deleteForm">
+            <label for="carSelect">Select Vehicle:</label>
+            <select class="dropdown" id="carSelect" name="carSelect"></select>
+            <br>
+            <input type="submit" value="Delete Vehicle">
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+        import { getFirestore, collection, query, getDocs, getDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+        import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app)
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const carSelect = document.getElementById('carSelect');
+
+            // Fetch the list of vehicles from Firestore
+            const vehicles = await getVehicles();
+
+            // Populate the dropdown menu with the retrieved data
+            vehicles.forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.id;
+                option.textContent = `${vehicle.make} ${vehicle.model} (${vehicle.year})`;
+                carSelect.appendChild(option);
+            });
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent form submission
+
+            const vehicleId = document.getElementById('carSelect').value;
+
+            try {
+                // Delete document from Firestore
+                await deleteVehicleFromFirestore(vehicleId);
+                alert('Vehicle deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting vehicle:', error);
+                alert('Error deleting vehicle. Please try again later.');
+            }
+        });
+
+        async function getVehicles() {
+            const querySnapshot = await getDocs(collection(db, 'cars'));
+            const vehicles = [];
+
+            querySnapshot.forEach(doc => {
+                vehicles.push({ id: doc.id, ...doc.data() });
+            });
+
+            return vehicles;
+        }
+
+        async function deleteVehicleFromFirestore(vehicleId) {
+            // Get the document reference
+            const vehicleRef = doc(db, 'cars', vehicleId);
+
+            // Get the document data
+            const vehicleSnapshot = await getDoc(vehicleRef);
+            const vehicleData = vehicleSnapshot.data();
+
+            // Delete the document from Firestore
+            await deleteDoc(vehicleRef);
+
+            // Delete the images from Firebase Storage
+            await Promise.all(vehicleData.allImages.map(async imageUrl => {
+                const url = new URL(imageUrl);
+                const filename = decodeURIComponent(url.pathname.split('/').slice(-1)[0]);
+
+                // Create a reference to the image in Firebase Storage
+                const imageRef = ref(storage, `${filename}`);
+
+                // Delete the image from Firebase Storage
+                await deleteObject(imageRef);
+            }));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&M Auto Sales - Upload a Vehicle</title>
+    <link rel="stylesheet" href="./styles.css"> <!-- Link to your CSS file -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Clicker+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="/js/script.js"></script> <!-- Link to your JavaScript file for tab functionality -->
+</head>
+<body>
+    <div class="container">
+        <h1>Add a Vehicle</h1>
+        <!-- Your upload form or any other UI elements -->
+    <form id="uploadForm">
+        <label for="carMake">Make:</label>
+            <input type="text" id="carMake" name="carMake" placeholder="Enter make">
+            <br>
+            <label for="carModel">Model:</label>
+            <input type="text" id="carModel" name="carModel" placeholder="Enter model">
+            <br>
+            <label for="carYear">Year:</label>
+            <input type="text" id="carYear" name="carYear" placeholder="Enter year">
+            <br>
+            <label for="carPrice">Price:</label>
+            <input type="text" id="carPrice" name="carPrice" placeholder="Enter price">
+            <br>
+            <label for="carFeatures">Features:</label>
+            <input type="text" id="carFeatures" name="carFeatures" placeholder="Enter features (comma separated)">
+            <br>
+            <label for="carMainImage">Main Image URL:</label>
+            <input type="file" id="carMainImage" name="carMainImage">
+            <br>
+            <label for="carAllImages">Additional Images URLs:</label>
+            <input type="file" id="carAllImages" name="carAllImages" multiple>
+            <br>
+            <input type="submit" value="Upload Car">
+    </form>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js'
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent form submission
+        
+        const make = document.getElementById('carMake').value;
+        const model = document.getElementById('carModel').value;
+        const year = document.getElementById('carYear').value;
+        const price = parseFloat(document.getElementById('carPrice').value);
+        const features = document.getElementById('carFeatures').value;
+        const mainImageFile = document.getElementById('carMainImage').files[0];
+        const allImagesFiles = document.getElementById('carAllImages').files;
+        
+        // Upload main image to Firebase Storage
+        const mainImageRef = await uploadImage(mainImageFile);
+        const mainImageURL = await getDownloadURL(mainImageRef);
+        
+        // Upload additional images to Firebase Storage
+        const allImagesURLs = await Promise.all(Array.from(allImagesFiles).map(async (file) => {
+            const imageRef = await uploadImage(file);
+            return getDownloadURL(imageRef);
+        }));
+
+        // Store data in Firebase Realtime Database
+        const docRef = await addDoc(collection(db, 'cars'), {
+            make,
+            model,
+            year,
+            price,
+            features: features.split(',').map(feature => feature.trim()),
+            mainImage: mainImageURL,
+            allImages: allImagesURLs
+        });
+        alert('Vehicle uploaded successfully!');
+    });
+
+    async function uploadImage(file) {
+        const storageRef = ref(storage, 'images/' + file.name);
+        const snapshot = await uploadBytes(storageRef, file);
+        return snapshot.ref;
+    }
+
+    async function getDownloadURL(ref) {
+        const bucketName = storage._bucket.name;
+        return `https://firebasestorage.googleapis.com/v0/b/jmauto-13009.appspot.com/o/${encodeURIComponent(ref.fullPath)}?alt=media`;
+    }
+
+    </script>
+    </div>
+</body>
+</html>
+
+

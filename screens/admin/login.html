@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="./styles.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <div class="container" id="loginContainer">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+
+    <!-- Modal for login error -->
+    <div id="loginErrorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <p>Error logging in. Please check your email and password.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Modal elements
+        const loginErrorModal = document.getElementById('loginErrorModal');
+        const closeModal = document.getElementById('closeModal');
+
+        // Close modal when 'X' is clicked
+        closeModal.onclick = function () {
+            loginErrorModal.style.display = 'none';
+        };
+
+        // Close modal when clicking outside the modal content
+        window.onclick = function (event) {
+            if (event.target === loginErrorModal) {
+                loginErrorModal.style.display = 'none';
+            }
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+                // Log in with Firebase
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Redirect to admin page
+                    window.location.href = 'admin.html';
+                })
+                .catch((error) => {
+                    // Show error modal
+                    loginErrorModal.style.display = 'block';
+                });
+        });
+    </script>
+</body>
+</html>

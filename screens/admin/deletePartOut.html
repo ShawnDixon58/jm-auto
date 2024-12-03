@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css"> <!-- Link to your CSS file -->
+    <title>J&M Auto Sales - Delete A Part Out</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Delete Part</h1>
+        <form id="deleteForm">
+            <div class="form-group">
+                <label for="carSelect">Select Vehicle:</label>
+                <select class="dropdown" id="carSelect" name="carSelect"></select>
+            </div>
+            <br>
+            <div class="form-group" id="partList"></div>
+            <br>
+            <input type="submit" value="Delete Selected Parts" id="deletePartsBtn">
+            <br>
+            <br>
+            <input type="submit" value="Delete Selected Vehicle" id="deleteVehicleBtn">
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+        import { getFirestore, collection, query, getDocs, getDoc, updateDoc, deleteDoc, doc, where } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+        import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const carSelect = document.getElementById('carSelect');
+            
+            // Fetch the list of vehicles from Firestore
+            const vehicles = await getVehicles();
+            // Populate the dropdown menu with the retrieved data
+            vehicles.forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.id;
+                option.textContent = `${vehicle.make} ${vehicle.model} (${vehicle.year})`;
+                carSelect.appendChild(option);
+                
+            });
+
+            if (vehicles.length > 0) {
+                // Automatically render parts list for the first vehicle by default
+                const initialVehicleId = carSelect.value;
+                const parts = await getPartsForVehicle(initialVehicleId);
+                renderPartsList(parts);
+            }
+
+            // Listen for changes in the selected vehicle
+            carSelect.addEventListener('change', async () => {
+                const vehicleId = carSelect.value;
+                const parts = await getPartsForVehicle(vehicleId);
+                renderPartsList(parts);
+            });
+        });
+
+        async function getVehicles() {
+            const querySnapshot = await getDocs(collection(db, 'parts'));
+            const vehicles = [];
+            querySnapshot.forEach(doc => {
+                vehicles.push({ id: doc.id, ...doc.data() });
+            });
+            return vehicles;
+        }
+
+        async function getPartsForVehicle(vehicleId) {
+            try {
+                const vehicleRef = doc(db, 'parts', vehicleId);
+                const vehicleSnapshot = await getDoc(vehicleRef);
+                const vehicleData = vehicleSnapshot.data().parts;
+                return vehicleData;
+            } catch (error) {
+                console.error('Error fetching parts:', error);
+                return [];
+            }
+        }
+
+        function renderPartsList(parts) {
+            const partListContainer = document.getElementById('partList');
+            partListContainer.innerHTML = ''; // Clear previous content
+
+            // Filter out parts that are marked as sold
+            const unsoldParts = parts.filter(part => !part.sold);
+
+            if (unsoldParts.length === 0) {
+                partListContainer.textContent = 'No available parts';
+                return;
+            }
+
+            unsoldParts.forEach(part => {
+                const partItemContainer = document.createElement('div');
+                partItemContainer.classList.add('part-item'); // Add a class for styling
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'partsToDelete';
+                checkbox.value = part.part; // Assuming 'part' is the unique identifier for the part
+
+                const label = document.createElement('label');
+                label.textContent = `${part.part}`;
+
+                partItemContainer.appendChild(checkbox);
+                partItemContainer.appendChild(label);
+                partListContainer.appendChild(partItemContainer);
+            });
+        }
+
+        document.getElementById('deletePartsBtn').addEventListener('click', async () => {
+            const partsToDelete = document.querySelectorAll('input[name="partsToDelete"]:checked');
+            const partIds = Array.from(partsToDelete).map(checkbox => checkbox.value);
+
+            if (partIds.length === 0) {
+                alert('Please select at least one part to mark as sold.');
+                return;
+            }
+
+            try {
+                // Mark parts as sold in Firestore
+                await Promise.all(partIds.map(partId => markPartAsSold(partId)));
+                console.log('Marked parts as sold: ', partIds);
+                alert('Selected parts marked as sold successfully!');
+            } catch (error) {
+                console.error('Error marking parts as sold:', error);
+                alert('Error marking parts as sold. Please try again later.');
+            }
+        });
+
+        async function markPartAsSold(partId) {
+            const vehicleId = document.getElementById('carSelect').value;
+            const partRef = doc(db, 'parts', vehicleId);
+            const partDoc = await getDoc(partRef);
+
+            if (!partDoc.exists()) {
+                console.error('Document does not exist:', vehicleId);
+                return;
+            }
+
+            const parts = partDoc.data().parts;
+            const partIndex = parts.findIndex(part => part.part === partId);
+
+            if (partIndex === -1) {
+                console.error('Part not found:', partId);
+                return;
+            }
+
+            parts[partIndex].sold = true;
+
+            await updateDoc(partRef, { parts });
+            renderPartsList(parts);
+        }
+
+        document.getElementById('deleteVehicleBtn').addEventListener('click', async () => {
+            const vehicleId = document.getElementById('carSelect').value;
+
+            if (!vehicleId) {
+                alert('Please select a vehicle to delete.');
+                return;
+            }
+
+            try {
+                // Delete the entire vehicle document from Firestore
+                await deleteDoc(doc(db, 'parts', vehicleId));
+                alert('Selected vehicle deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting vehicle:', error);
+                alert('Error deleting vehicle. Please try again later.');
+            }
+        });
+    </script>
+</body>
+</html>

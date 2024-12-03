@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&M Auto Sales - Parts</title>
+    <link rel="stylesheet" href="/screens/part/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Clicker+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <script src="/js/header.js"></script>
+    <div id="part-details" class="container">
+        <!-- Vehicle details will be inserted here dynamically -->
+    </div>
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 J&M Auto Sales. All rights reserved.</p>
+            <a href="../../screens/admin/login.html" class="admin-link">Admin</a>
+        </div>
+        
+    </footer>
+
+    <script type="module">
+        // Parse the URL parameters to get the part ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const partId = urlParams.get('id');
+        let eachTxt = ''
+
+        // Create our number formatter.
+        const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        });
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js'
+        // If you enabled Analytics in your project, add the Firebase SDK for Google Analytics
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js'
+
+        // Add Firebase products that you want to use
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js'
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js'
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
+            authDomain: "jmauto-13009.firebaseapp.com",
+            projectId: "jmauto-13009",
+            storageBucket: "jmauto-13009.appspot.com",
+            messagingSenderId: "457792057306",
+            appId: "1:457792057306:web:b1cf2a75ddb801a9d65ae3",
+            measurementId: "G-QX1T6N90R7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        // Reference to your Firebase database
+        const db = getFirestore();
+        // Reference to the "cars" node in your database
+        const partsCollection = collection(db, 'parts');
+
+        // Retrieve data from the database
+        getDocs(partsCollection).then((querySnapshot) => {
+            // Reference to the part container
+            const partDetailsContainer = document.getElementById('part-details');
+
+        // Iterate over each document in the query snapshot
+        querySnapshot.forEach((doc) => {
+            // Get data from the document
+            
+            console.log("DOC_DATA: ", doc.id)
+            if (doc.id === partId) {
+            const partOut = doc.data()
+            // Create elements to display part details
+            const h1 = document.createElement('h1');
+            h1.textContent = `${partOut.year} ${partOut.make} ${partOut.model}`;
+            h1.classList.add('part-title');
+            partDetailsContainer.appendChild(h1);
+
+            // Create elements for the rest of the part information
+            // You can customize this part based on your specific data structure
+            const priceParagraph = document.createElement('h2');
+            priceParagraph.textContent = `Price: ${formatter.format(partOut.price)}`;
+            priceParagraph.classList.add('price');
+            partDetailsContainer.appendChild(priceParagraph);
+
+            const partsList = document.createElement('ul');
+            partOut.parts.forEach(part => {
+                if (part.each === true) {
+                    eachTxt = 'each'
+                } else {
+                    eachTxt = ''
+                }
+                const partItem = document.createElement('li');
+                const strikeItem = document.createElement('strike');
+                if (part.sold === true) {
+                    strikeItem.textContent = `${part.part} - SOLD!! ${eachTxt}`;
+                    partItem.appendChild(strikeItem)
+                } else {
+                    partItem.textContent = `${part.part} - ${formatter.format(part.price)} ${eachTxt}`;
+                }
+                
+                partsList.appendChild(partItem);
+            });
+            partsList.classList.add('parts');
+            partDetailsContainer.appendChild(partsList);
+
+            // Add slideshow for part images
+            const slideshowContainer = document.createElement('div');
+            slideshowContainer.classList.add('slideshow-container');
+
+            partOut.allImages.forEach((image, index) => {
+                const slide = document.createElement('div');
+                slide.classList.add('slide');
+
+                const img = document.createElement('img');
+                img.src = image;
+                img.alt = `Image ${index + 1}`;
+                slide.appendChild(img);
+
+                slideshowContainer.appendChild(slide);
+            });
+
+            partDetailsContainer.appendChild(slideshowContainer);
+
+            const prevArrow = document.createElement('div');
+            prevArrow.classList.add('prev');
+            const span1 = document.createElement('span');
+            const span2 = document.createElement('span');
+            const span3 = document.createElement('span');
+            prevArrow.appendChild(span1);
+            prevArrow.appendChild(span2);
+            prevArrow.appendChild(span3);
+            slideshowContainer.appendChild(prevArrow);
+
+            const nextArrow = document.createElement('div');
+            nextArrow.classList.add('next');
+            const span4 = document.createElement('span');
+            const span5 = document.createElement('span');
+            const span6 = document.createElement('span');
+            nextArrow.appendChild(span4);
+            nextArrow.appendChild(span5);
+            nextArrow.appendChild(span6);
+            slideshowContainer.appendChild(nextArrow);
+
+            // Create thumbnails for the slideshow
+            const thumbnailsContainer = document.createElement('div');
+            thumbnailsContainer.classList.add('thumbnails-container');
+
+            partOut.allImages.forEach((image, index) => {
+                const thumbnail = document.createElement('div');
+                thumbnail.classList.add('thumbnail');
+
+                const img = document.createElement('img');
+                img.src = image;
+                img.alt = `Thumbnail ${index + 1}`;
+                thumbnail.appendChild(img);
+
+                thumbnailsContainer.appendChild(thumbnail);
+            });
+
+            partDetailsContainer.appendChild(thumbnailsContainer);
+
+            //Initialize slideshow functionality
+            let slideIndex = 0;
+            showSlides(slideIndex);
+
+            function showSlides(index) {
+                const slides = document.getElementsByClassName('slide');
+                const thumbnails = document.getElementsByClassName('thumbnail');
+
+                if (slides.length === 0) return;
+                if (index >= slides.length) slideIndex = 0;
+                if (index < 0) slideIndex = slides.length - 1;
+
+                for (let i = 0; i < slides.length; i++) {
+                    slides[i].style.display = 'none';
+                    thumbnails[i].classList.remove('active');
+                }
+
+                slides[slideIndex].style.display = 'block';
+                thumbnails[slideIndex].classList.add('active');
+            }
+
+            function plusSlides(n) {
+                showSlides(slideIndex += n);
+            }
+
+            //Event listeners for arrow clicks
+            prevArrow.addEventListener('click', () => plusSlides(-1));
+            nextArrow.addEventListener('click', () => plusSlides(1));
+
+            //Event listener for thumbnail clicks
+            thumbnailsContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('thumbnail')) {
+                    const clickedIndex = Array.from(thumbnailsContainer.children).indexOf(event.target);
+                    showSlides(clickedIndex);
+                }
+            });
+        }
+        })
+    })
+        .catch(error => console.error('Error fetching part details:', error));
+    </script>
+</body>
+</html>
