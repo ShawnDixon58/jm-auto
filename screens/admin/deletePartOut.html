@@ -26,8 +26,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-        import { getFirestore, collection, query, getDocs, getDoc, updateDoc, deleteDoc, doc, where } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
-        import { getStorage, ref, deleteObject } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
+        import { getFirestore, collection, query, getDocs, getDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyCGOW-SC--iGj863j0x97mqIHej_vOYeT4",
@@ -41,35 +40,34 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const carSelect = document.getElementById('carSelect');
-            
-            // Fetch the list of vehicles from Firestore
-            const vehicles = await getVehicles();
-            // Populate the dropdown menu with the retrieved data
-            vehicles.forEach(vehicle => {
-                const option = document.createElement('option');
-                option.value = vehicle.id;
-                option.textContent = `${vehicle.make} ${vehicle.model} (${vehicle.year})`;
-                carSelect.appendChild(option);
+            try {
+                const carSelect = document.getElementById('carSelect');
+                const vehicles = await getVehicles();
                 
-            });
+                vehicles.forEach(vehicle => {
+                    const option = document.createElement('option');
+                    option.value = vehicle.id;
+                    option.textContent = `${vehicle.make} ${vehicle.model} (${vehicle.year})`;
+                    carSelect.appendChild(option);
+                });
 
-            if (vehicles.length > 0) {
-                // Automatically render parts list for the first vehicle by default
-                const initialVehicleId = carSelect.value;
-                const parts = await getPartsForVehicle(initialVehicleId);
-                renderPartsList(parts);
+                if (vehicles.length > 0) {
+                    const initialVehicleId = carSelect.value;
+                    const parts = await getPartsForVehicle(initialVehicleId);
+                    renderPartsList(parts);
+                }
+
+                carSelect.addEventListener('change', async () => {
+                    const vehicleId = carSelect.value;
+                    const parts = await getPartsForVehicle(vehicleId);
+                    renderPartsList(parts);
+                });
+
+            } catch (error) {
+                console.error('Error initializing the page:', error);
             }
-
-            // Listen for changes in the selected vehicle
-            carSelect.addEventListener('change', async () => {
-                const vehicleId = carSelect.value;
-                const parts = await getPartsForVehicle(vehicleId);
-                renderPartsList(parts);
-            });
         });
 
         async function getVehicles() {
@@ -85,8 +83,7 @@
             try {
                 const vehicleRef = doc(db, 'parts', vehicleId);
                 const vehicleSnapshot = await getDoc(vehicleRef);
-                const vehicleData = vehicleSnapshot.data().parts;
-                return vehicleData;
+                return vehicleSnapshot.exists() ? vehicleSnapshot.data().parts : [];
             } catch (error) {
                 console.error('Error fetching parts:', error);
                 return [];
@@ -97,7 +94,6 @@
             const partListContainer = document.getElementById('partList');
             partListContainer.innerHTML = ''; // Clear previous content
 
-            // Filter out parts that are marked as sold
             const unsoldParts = parts.filter(part => !part.sold);
 
             if (unsoldParts.length === 0) {
@@ -107,15 +103,15 @@
 
             unsoldParts.forEach(part => {
                 const partItemContainer = document.createElement('div');
-                partItemContainer.classList.add('part-item'); // Add a class for styling
+                partItemContainer.classList.add('part-item');
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.name = 'partsToDelete';
-                checkbox.value = part.part; // Assuming 'part' is the unique identifier for the part
+                checkbox.value = part.part;
 
                 const label = document.createElement('label');
-                label.textContent = `${part.part}`;
+                label.textContent = part.part;
 
                 partItemContainer.appendChild(checkbox);
                 partItemContainer.appendChild(label);
@@ -124,6 +120,7 @@
         }
 
         document.getElementById('deletePartsBtn').addEventListener('click', async () => {
+            event.preventDefault();
             const partsToDelete = document.querySelectorAll('input[name="partsToDelete"]:checked');
             const partIds = Array.from(partsToDelete).map(checkbox => checkbox.value);
 
@@ -133,9 +130,7 @@
             }
 
             try {
-                // Mark parts as sold in Firestore
                 await Promise.all(partIds.map(partId => markPartAsSold(partId)));
-                console.log('Marked parts as sold: ', partIds);
                 alert('Selected parts marked as sold successfully!');
             } catch (error) {
                 console.error('Error marking parts as sold:', error);
@@ -166,8 +161,8 @@
             await updateDoc(partRef, { parts });
             renderPartsList(parts);
         }
-
         document.getElementById('deleteVehicleBtn').addEventListener('click', async () => {
+            event.preventDefault();
             const vehicleId = document.getElementById('carSelect').value;
 
             if (!vehicleId) {
@@ -175,15 +170,48 @@
                 return;
             }
 
+            // Log the vehicleId to make sure it's correct
+            console.log('Selected Vehicle ID:', vehicleId);
+
+            // Make sure the collection name is correct (e.g., 'vehicles' or 'parts')
+            const vehicleRef = doc(db, 'parts', vehicleId); // Use the correct collection name here
+
+            // Log the Firestore document reference for debugging
+            console.log('Vehicle Reference:', vehicleRef);
+
             try {
-                // Delete the entire vehicle document from Firestore
-                await deleteDoc(doc(db, 'parts', vehicleId));
+                console.log('Attempting to fetch vehicle document...');
+
+                // Check if the document exists
+                const vehicleDoc = await getDoc(vehicleRef);
+
+                // Handle if document doesn't exist
+                if (!vehicleDoc.exists()) {
+                    console.error('Vehicle document does not exist');
+                    alert('Vehicle not found or already deleted.');
+                    return;
+                }
+
+                console.log('Vehicle document found. Deleting...');
+
+                // Proceed with document deletion
+                await deleteDoc(vehicleRef);
+
                 alert('Selected vehicle deleted successfully!');
+                
+                // Optionally, update the UI instead of reloading
+                const carSelect = document.getElementById('carSelect');
+                const deletedOption = carSelect.querySelector(`option[value="${vehicleId}"]`);
+                if (deletedOption) {
+                    deletedOption.remove();
+                }
+
             } catch (error) {
-                console.error('Error deleting vehicle:', error);
+                console.error('Error fetching/deleting vehicle document:', error);
                 alert('Error deleting vehicle. Please try again later.');
             }
         });
+
     </script>
 </body>
 </html>
